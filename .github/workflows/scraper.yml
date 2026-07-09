@@ -1,0 +1,41 @@
+name: Proxy Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scrape-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Download Xray-core
+        run: |
+          wget -O xray.zip https://github.com/XTLS/Xray-core/releases/download/v1.8.8/Xray-linux-64.zip
+          unzip xray.zip -d xray-core
+          chmod +x xray-core/xray
+          
+      - name: Run Scraper
+        env:
+          XRAY_BIN: ${{ github.workspace }}/xray-core/xray
+        run: node index.js
+        
+      - name: Commit and Push results
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add sub.txt
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update proxy subscriptions" && git push)

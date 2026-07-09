@@ -1,0 +1,6 @@
+node_modules/
+temp_config.json
+xray-core/
+xray.zip
+*.exe
+.env
